@@ -1,0 +1,10 @@
+[package]
+name = "kcd-toolkit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.29", features = ["derive"] }
+walkdir = "2.5.0"
+zip = "2.2.2"
+

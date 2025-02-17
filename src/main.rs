@@ -1,9 +1,11 @@
 use clap::{Parser, Subcommand};
+
 use std::{
     fs::File,
     io::{Read, Write},
     path::Path,
 };
+
 use zip::{
     read::ZipArchive,
     write::{FileOptions, ZipWriter},
@@ -14,7 +16,7 @@ use zip::{
 #[derive(Parser)]
 #[command(name = "kcd-toolkit")]
 #[command(version = "1.0")]
-#[command(about = "A tool to compress and extract CryEngine .pak files", long_about = None)]
+#[command(about = "A toolkit for managing and creating Kingdom Come Deliverance mod files", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -22,21 +24,26 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Compress {
-        input_dir: String,
-        output_pak: String,
-    },
-    Extract {
+    /// Unpack a .pak file into a directory
+    Unpack {
         input_pak: String,
         output_dir: String,
     },
+    /// Pack a directory into a .pak file
+    Pack {
+        input_dir: String,
+        output_pak: String,
+    },
+    /// Create a new mod (not yet implemented)
+    Create {
+        modname: String,
+    },
 }
 
-fn compress_pak(input_dir: &str, output_pak: &str) -> ZipResult<()> {
+fn pack(input_dir: &str, output_pak: &str) -> ZipResult<()> {
     let file = File::create(output_pak)?;
     let mut zip = ZipWriter::new(file);
 
-    // Explicitly specify the type of `options`
     let options: FileOptions<'_, ()> = FileOptions::default()
         .compression_method(CompressionMethod::Deflated);
 
@@ -80,11 +87,11 @@ fn compress_pak(input_dir: &str, output_pak: &str) -> ZipResult<()> {
     }
 
     zip.finish()?;
-    println!("Compressed: {} -> {}", input_dir, output_pak);
+    println!("Packed: {} -> {}", input_dir, output_pak);
     Ok(())
 }
 
-fn extract_pak(input_pak: &str, output_dir: &str) -> ZipResult<()> {
+fn unpack(input_pak: &str, output_dir: &str) -> ZipResult<()> {
     let file = File::open(input_pak)?;
     let mut archive = ZipArchive::new(file)?;
 
@@ -109,23 +116,30 @@ fn extract_pak(input_pak: &str, output_dir: &str) -> ZipResult<()> {
         }
     }
 
-    println!("Extracted: {} -> {}", input_pak, output_dir);
+    println!("Unpacked: {} -> {}", input_pak, output_dir);
     Ok(())
+}
+
+fn create(modname: &str) {
+    println!("Hello, world! Mod '{}' will be created here (not yet implemented).", modname);
 }
 
 fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Compress { input_dir, output_pak } => {
-            if let Err(e) = compress_pak(input_dir, output_pak) {
-                eprintln!("Error compressing: {}", e);
+        Commands::Unpack { input_pak, output_dir } => {
+            if let Err(e) = unpack(input_pak, output_dir) {
+                eprintln!("Error unpacking: {}", e);
             }
         }
-        Commands::Extract { input_pak, output_dir } => {
-            if let Err(e) = extract_pak(input_pak, output_dir) {
-                eprintln!("Error extracting: {}", e);
+        Commands::Pack { input_dir, output_pak } => {
+            if let Err(e) = pack(input_dir, output_pak) {
+                eprintln!("Error packing: {}", e);
             }
+        }
+        Commands::Create { modname } => {
+            create(modname);
         }
     }
 }
